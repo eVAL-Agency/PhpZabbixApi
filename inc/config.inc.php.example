@@ -73,5 +73,5 @@ define('PATH_BUILD', 'build');
  * to update this constant!
  */
 
-define('PATH_ZABBIX', '/home/charlie/Projects/PhpZabbixApi/Zabbix/frontends/php');
+define('PATH_ZABBIX', '/usr/share/zabbix');
 ?>
