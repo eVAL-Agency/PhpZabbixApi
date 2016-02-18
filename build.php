@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 /**
  * @file    build.php
@@ -190,64 +191,67 @@
  * Build abstract template.
  */
 
-    // get template
-    if(!$template = file_get_contents(PATH_TEMPLATES.'/abstract.tpl.php'))
-        die();
+// get template
+if(!$template = file_get_contents(PATH_TEMPLATES.'/abstract.tpl.php'))
+    die();
 
-    // fetch API method block
-    preg_match('/(.*)<!START_API_METHOD>(.*)<!END_API_METHOD>(.*)/s', $template, $matches);
+// fetch API method block
+preg_match('/(.*)<!START_API_METHOD>(.*)<!END_API_METHOD>(.*)/s', $template, $matches);
 
-    // sanity check
-    if(count($matches) != 4)
-        die('Template "'.PATH_TEMPLATES.'"/abstract.tpl.php parsing failed!');
+// sanity check
+if(count($matches) != 4)
+    die('Template "'.PATH_TEMPLATES.'"/abstract.tpl.php parsing failed!');
 
-    // initialize variable for API methods
-    $apiMethods = '';
+// initialize variable for API methods
+$apiMethods = '';
 
-    // build API methods
-    foreach($apiArray as $resource => $actions)
+// build API methods
+foreach($apiArray as $resource => $actions)
+{
+    foreach($actions as $action)
     {
-        foreach($actions as $action)
-        {
-            $methodPlaceholders = array(
-                'API_METHOD' => $resource.'.'.$action,
-                'PHP_METHOD' => $resource.ucfirst($action)
-            );
-            $apiMethods .= replacePlaceholders($matches[2], $methodPlaceholders);
-        }
+        $methodPlaceholders = array(
+            'API_METHOD' => $resource.'.'.$action,
+            'PHP_METHOD' => $resource.ucfirst($action)
+        );
+        $apiMethods .= replacePlaceholders($matches[2], $methodPlaceholders);
     }
+}
 
-    // build file content
-    $fileContent = replacePlaceholders($matches[1].$apiMethods.$matches[3], $templatePlaceholders);
+// build file content
+$fileContent = replacePlaceholders($matches[1].$apiMethods.$matches[3], $templatePlaceholders);
 
-    // write abstract class
-    if(!file_put_contents(PATH_BUILD.'/'.FILENAME_ABSTRACT, $fileContent))
-        die();
+// Ensure the directory exists before attempting to build!
+if(!is_dir(PATH_BUILD . '/')){
+    mkdir(PATH_BUILD);
+}
 
-    echo 'BUILT: abstract class file "'.PATH_BUILD.'/'.FILENAME_ABSTRACT.'"'."\n";
+// write abstract class
+if(!file_put_contents(PATH_BUILD.'/'.FILENAME_ABSTRACT, $fileContent))
+    die();
+
+echo 'BUILT: abstract class file "'.PATH_BUILD.'/'.FILENAME_ABSTRACT.'"'."\n";
 
 /*
  * Build concrete template.
  */
 
-    if(!file_exists(PATH_BUILD.'/'.FILENAME_CONCRETE))
-    {
-        // get template
-        if(!$template = file_get_contents(PATH_TEMPLATES.'/concrete.tpl.php'))
-            die();
+if(!file_exists(PATH_BUILD.'/'.FILENAME_CONCRETE))
+{
+    // get template
+    if(!$template = file_get_contents(PATH_TEMPLATES.'/concrete.tpl.php'))
+        die();
 
-        // build file content
-        $fileContent = replacePlaceholders($template, $templatePlaceholders);
+    // build file content
+    $fileContent = replacePlaceholders($template, $templatePlaceholders);
 
-        // write abstract class
-        if(!file_put_contents(PATH_BUILD.'/'.FILENAME_CONCRETE, $fileContent))
-            die();
+    // write abstract class
+    if(!file_put_contents(PATH_BUILD.'/'.FILENAME_CONCRETE, $fileContent))
+        die();
 
-        echo 'BUILT: conrete class file "'.PATH_BUILD.'/'.FILENAME_CONCRETE.'"'."\n";
-    }
-    else
-    {
-        echo 'SKIPPED: concrete class file "'.PATH_BUILD.'/'.FILENAME_CONCRETE.'"'."\n";
-    }
-
-?>
+    echo 'BUILT: conrete class file "'.PATH_BUILD.'/'.FILENAME_CONCRETE.'"'."\n";
+}
+else
+{
+    echo 'SKIPPED: concrete class file "'.PATH_BUILD.'/'.FILENAME_CONCRETE.'"'."\n";
+}
